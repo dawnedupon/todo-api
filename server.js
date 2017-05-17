@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('underscore'); //Underscore
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -26,13 +27,14 @@ app.get('/todos', function(req, res) {
 //Colon is what express uses to parse the data coming in
 app.get('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo;
+  var matchedTodo = _.findWhere(todos, {id: todoId});
 
-  todos.forEach(function(todo) {
-    if (todoId === todo.id) {
-        matchedTodo = todo;
-    }
-  });
+  // var matchedTodo;
+  // todos.forEach(function(todo) {
+  //   if (todoId === todo.id) {
+  //       matchedTodo = todo;
+  //   }
+  // });
 
   if (matchedTodo) {
     res.json(matchedTodo);
@@ -43,7 +45,15 @@ app.get('/todos/:id', function(req, res) {
 
 // POST /todos
 app.post('/todos', function(req, res) {
-  var body = req.body;
+  //first argument: where you want to pick from, second argument: what you want picked. See underscorejs documentation
+  var body = _.pick(req.body, 'description', 'completed');
+
+  //if body.completed is not a boolean or if body.description is not a string or there is an empty string
+  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+    return res.status(400).send(); //"bad data"
+  }
+
+  body.description = body.description.trim();
 
   //Add id field
   body.id = todoNextId++;
