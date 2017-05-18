@@ -75,7 +75,37 @@ app.delete('/todos/:id', function(req, res) {
     todos = _.without(todos, matchedTodo);
     res.json(matchedTodo);
   }
+});
 
+//PUT /todos/:id
+app.put('/todos/:id', function(req, res) {
+  var todoId = parseInt(req.params.id, 10);
+  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var body = _.pick(req.body, 'description', 'completed');
+  var validAttributes = {}; //Object that stores the attributes we want to update
+
+  if (!matchedTodo) {
+    return res.status(404).send();
+  }
+
+  if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+    //'completed' must exist and be a boolean
+    validAttributes.completed = body.completed;
+  } else if (body.hasOwnProperty('completed')) {
+    //'completed' exists but syntax is bad
+    return res.status(400).send();
+  } //else {
+    //Never provided attribute. Continue with request
+  //}
+
+  if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+    validAttributes.description = body.description;
+  } else if (body.hasOwnProperty('description')) {
+    return res.status(400).send();
+  }
+
+  _.extend(matchedTodo, validAttributes); //(destination, source) extend copies all the properties in source objects to destination object
+  res.json(matchedTodo);
 });
 
 app.listen(PORT, function() {
