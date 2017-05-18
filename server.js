@@ -18,8 +18,17 @@ app.get('/', function(req, res) {
 //Get the whole collection
 //GET /todos
 app.get('/todos', function(req, res) {
-  //convert the string to JSON first, then send it back to whoever called the API
-  res.json(todos);
+  var queryParams = req.query;
+  var filteredTodos = todos;
+
+  if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+    //_.where works even if this is true of more than one item
+    filteredTodos = _.where(filteredTodos, {completed: true});
+  } else if (queryParams.hasOwnProperty('completed') && queryParams.completed == 'false') {
+    filteredTodos = _.where(filteredTodos, {completed: false});
+  }
+
+  res.json(filteredTodos);
 });
 
 //Get just one model
