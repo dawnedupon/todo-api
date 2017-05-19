@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore'); //Underscore
+var db = require('./db.js');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -65,20 +66,28 @@ app.post('/todos', function(req, res) {
   //first argument: where you want to pick from, second argument: what you want picked. See underscorejs documentation
   var body = _.pick(req.body, 'description', 'completed');
 
-  //if body.completed is not a boolean or if body.description is not a string or there is an empty string
-  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-    return res.status(400).send(); //"bad data"
-  }
+  db.todo.create(body).then(function(todo) {
+    res.json(todo.toJSON());
+  }, function(e){
+    res.status(400).json(e);
+  });
 
-  body.description = body.description.trim();
 
-  //Add id field
-  body.id = todoNextId++;
+  // //if body.completed is not a boolean or if body.description is not a string or there is an empty string
+  // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+  //   return res.status(400).send(); //"bad data"
+  // }
+  //
+  // body.description = body.description.trim();
+  //
+  // //Add id field
+  // body.id = todoNextId++;
+  //
+  // //Push body into array
+  // todos.push(body);
+  //
+  // res.json(body);
 
-  //Push body into array
-  todos.push(body);
-
-  res.json(body);
 });
 
 //DELETE /todos/:id
@@ -125,6 +134,8 @@ app.put('/todos/:id', function(req, res) {
   res.json(matchedTodo);
 });
 
-app.listen(PORT, function() {
-  console.log('Express listening on Port ' + PORT + '!');
+db.sequelize.sync().then(function() {
+  app.listen(PORT, function() {
+    console.log('Express listening on Port ' + PORT + '!');
+  });
 });
