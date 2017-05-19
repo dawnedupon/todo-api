@@ -118,10 +118,14 @@ app.post('/todos', function(req, res) {
 //DELETE /todos/:id
 app.delete('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var matchedTodo = _.findWhere(todos, {
+    id: todoId
+  });
 
   if (!matchedTodo) {
-    res.status(404).json({"error": "No todo found with that id"});
+    res.status(404).json({
+      "error": "No todo found with that id"
+    });
   } else {
     todos = _.without(todos, matchedTodo);
     res.json(matchedTodo);
@@ -131,7 +135,9 @@ app.delete('/todos/:id', function(req, res) {
 //PUT /todos/:id
 app.put('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var matchedTodo = _.findWhere(todos, {
+    id: todoId
+  });
   var body = _.pick(req.body, 'description', 'completed');
   var validAttributes = {}; //Object that stores the attributes we want to update
 
