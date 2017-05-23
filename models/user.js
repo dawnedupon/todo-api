@@ -9,8 +9,14 @@ module.exports = function(sequelize, DataTypes) {
     password: {
       type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        len: [7, 100]
+      validate: { len: [7, 100] }
+    }
+  }, {
+    hooks: {
+      beforeValidate: function(user, options) {
+        if (typeof user.email === 'string') {
+          user.email = user.email.toLowerCase();
+        }
       }
     }
   });
