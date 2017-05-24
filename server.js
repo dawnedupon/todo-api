@@ -39,12 +39,13 @@ app.get('/todos', middleware.requireAuthentication, function(req, res) {
     };
   }
 
-  db.todo.findAll({where: where}).then( function(todos) {
+  db.todo.findAll({
+    where: where
+  }).then( function(todos) {
     res.json(todos);
   }, function(e) {
     res.status(500).send();
   });
-
 });
 
 //Get just one model
@@ -67,7 +68,6 @@ app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
   }, function(e) {
     res.status(500).send(); //500 means server error
   });
-
 });
 
 // POST /todos
@@ -84,7 +84,6 @@ app.post('/todos', middleware.requireAuthentication, function(req, res) {
   }, function(e){
     res.status(400).json(e);
   });
-
 });
 
 //DELETE /todos/:id
@@ -107,7 +106,6 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
   }), function(e) {
     res.status(500).send();
   };
-
 });
 
 //PUT /todos/:id
@@ -154,26 +152,36 @@ app.post('/users', function(req, res) {
   }, function(e) {
     res.status(400).json(e);
   });
-
 });
 
 //POST /users/login
 app.post('/users/login', function(req, res) {
   var body = _.pick(req.body, 'email', 'password');
+  var userInstance;
 
   db.user.authenticate(body).then(function(user) {
     var token =  user.generateToken('authentication');
+    userInstance = user;
 
-    if (token) {
-      res.header('Auth', token).json(user.toPublicJSON());
-    } else {
-      res.status(401).send();
-    }
+    return db.token.create({
+        token: token
+    });
 
-  }, function() {
+  }).then(function(tokenInstance) {
+    res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+  }).catch(function() {
     res.status(401).send();
   });
 
+});
+
+//DELETE /users/login
+app.delete('/users/login', middleware.requireAuthentication, function(req, res) {
+  req.token.destroy().then(function() {
+    res.status(204).send();
+  }).catch(function() {
+    res.status(500).send();
+  });
 });
 
 db.sequelize.sync({force: true}).then(function() {
