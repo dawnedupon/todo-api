@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 var _ = require('underscore'); //Underscore
 var db = require('./db.js');
 var bcrypt = require('bcrypt');
+var middleware = require('./middleware.js')(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -21,7 +22,7 @@ app.get('/', function(req, res) {
 //GET /todos
 //GET /todos?completed=true
 //GET /todos?completed=true&q=eat
-app.get('/todos', function(req, res) {
+app.get('/todos', middleware.requireAuthentication, function(req, res) {
   var query = req.query;
   var where = {};
 
@@ -65,7 +66,7 @@ app.get('/todos', function(req, res) {
 //Get just one model
 // GET /todos/:id
 //Colon is what express uses to parse the data coming in
-app.get('/todos/:id', function(req, res) {
+app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
   var todoId = parseInt(req.params.id, 10);
 
   db.todo.findById(todoId).then(function(todo) {
@@ -89,7 +90,7 @@ app.get('/todos/:id', function(req, res) {
 });
 
 // POST /todos
-app.post('/todos', function(req, res) {
+app.post('/todos', middleware.requireAuthentication, function(req, res) {
   //first argument: where you want to pick from, second argument: what you want picked. See underscorejs documentation
   var body = _.pick(req.body, 'description', 'completed');
 
@@ -117,7 +118,7 @@ app.post('/todos', function(req, res) {
 });
 
 //DELETE /todos/:id
-app.delete('/todos/:id', function(req, res) {
+app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
   var todoId = parseInt(req.params.id, 10);
   // var matchedTodo = _.findWhere(todos, {
   //   id: todoId
@@ -151,7 +152,7 @@ app.delete('/todos/:id', function(req, res) {
 });
 
 //PUT /todos/:id
-app.put('/todos/:id', function(req, res) {
+app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
   var todoId = parseInt(req.params.id, 10);
   var body = _.pick(req.body, 'description', 'completed');
   var attributes = {};
